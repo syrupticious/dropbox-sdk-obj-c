@@ -46,7 +46,8 @@
 + (void)setupWithTransportConfig:(DBTransportDefaultConfig *)transportConfig {
   [[self class] setupWithOAuthManager:[[DBOAuthMobileManager alloc] initWithAppKey:transportConfig.appKey
                                                                               host:transportConfig.hostnameConfig.meta
-                                                                       redirectURL:transportConfig.redirectURL]
+                                                                       redirectURL:transportConfig.redirectURL
+																   keychainService:transportConfig.keychainService]
                       transportConfig:transportConfig];
 }
 
@@ -58,7 +59,8 @@
   [[self class]
       setupWithOAuthManagerTeam:[[DBOAuthMobileManager alloc] initWithAppKey:transportConfig.appKey
                                                                         host:transportConfig.hostnameConfig.meta
-                                                                 redirectURL:transportConfig.redirectURL]
+                                                                 redirectURL:transportConfig.redirectURL
+															 keychainService:transportConfig.keychainService]
                 transportConfig:transportConfig];
 }
 

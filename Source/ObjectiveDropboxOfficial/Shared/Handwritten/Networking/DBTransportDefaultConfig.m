@@ -57,7 +57,8 @@
                      asMemberId:asMemberId
                   delegateQueue:delegateQueue
          forceForegroundSession:forceForegroundSession
-      sharedContainerIdentifier:nil];
+      sharedContainerIdentifier:nil
+		  keychainService:nil];
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey
@@ -66,7 +67,8 @@
                     asMemberId:(NSString *)asMemberId
                  delegateQueue:(NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier {
+     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService {
   return [self initWithAppKey:appKey
                       appSecret:appSecret
                       userAgent:userAgent
@@ -74,7 +76,8 @@
               additionalHeaders:nil
                   delegateQueue:delegateQueue
          forceForegroundSession:forceForegroundSession
-      sharedContainerIdentifier:sharedContainerIdentifier];
+      sharedContainerIdentifier:sharedContainerIdentifier
+		  keychainService:keychainService];
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey
@@ -84,7 +87,8 @@
              additionalHeaders:(NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier {
+     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService {
   return [self initWithAppKey:appKey
                       appSecret:appSecret
                  hostnameConfig:nil
@@ -93,7 +97,8 @@
               additionalHeaders:additionalHeaders
                   delegateQueue:delegateQueue
          forceForegroundSession:forceForegroundSession
-      sharedContainerIdentifier:sharedContainerIdentifier];
+      sharedContainerIdentifier:sharedContainerIdentifier
+			  keychainService:keychainService];
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey
@@ -104,7 +109,8 @@
              additionalHeaders:(NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier {
+     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService {
   return [self initWithAppKey:appKey
                       appSecret:appSecret
                  hostnameConfig:hostnameConfig
@@ -115,7 +121,8 @@
               additionalHeaders:additionalHeaders
                   delegateQueue:delegateQueue
          forceForegroundSession:forceForegroundSession
-      sharedContainerIdentifier:sharedContainerIdentifier];
+      sharedContainerIdentifier:sharedContainerIdentifier
+			  keychainService:keychainService];
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey
@@ -128,7 +135,8 @@
              additionalHeaders:(NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier {
+     sharedContainerIdentifier:(NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService {
   if (self = [super initWithAppKey:appKey
                          appSecret:appSecret
                     hostnameConfig:hostnameConfig
@@ -140,6 +148,7 @@
     _delegateQueue = delegateQueue;
     _forceForegroundSession = forceForegroundSession;
     _sharedContainerIdentifier = sharedContainerIdentifier;
+	_keychainService = keychainService;
   }
   return self;
 }

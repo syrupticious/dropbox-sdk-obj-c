@@ -297,7 +297,8 @@
                                         additionalHeaders:nil
                                             delegateQueue:_delegateQueue
                                    forceForegroundSession:_forceForegroundSession
-                                sharedContainerIdentifier:nil];
+                                sharedContainerIdentifier:nil
+										  keychainService:nil];
 }
 
 #pragma mark - Session accessors and mutators

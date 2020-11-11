@@ -122,10 +122,13 @@ static DBOAuthManager *s_sharedOAuthManager;
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey host:(NSString *)host {
-  return [self initWithAppKey:appKey host:host redirectURL:nil];
+  return [self initWithAppKey:appKey host:host redirectURL:nil keychainService:nil];
 }
 
-- (instancetype)initWithAppKey:(NSString *)appKey host:(NSString *)host redirectURL:(NSString *)redirectURL {
+- (instancetype)initWithAppKey:(NSString *)appKey
+						  host:(NSString *)host
+				   redirectURL:(NSString *)redirectURL
+			   keychainService:(nullable NSString *)keychainService {
   self = [super init];
   if (self) {
     if (host == nil) {
@@ -144,6 +147,11 @@ static DBOAuthManager *s_sharedOAuthManager;
     _disableSignup = YES;
 #endif
     _webAuthShouldForceReauthentication = NO;
+	if (keychainService == nil) {
+      _keychainService = [NSBundle mainBundle].bundleIdentifier ?: @"";
+	} else {
+      _keychainService = keychainService;
+	}
   }
   return self;
 }
@@ -439,7 +447,7 @@ static DBOAuthManager *s_sharedOAuthManager;
 #pragma mark - Keychain methods
 
 - (BOOL)storeAccessToken:(DBAccessToken *)accessToken {
-  return [DBSDKKeychain storeAccessToken:accessToken];
+  return [DBSDKKeychain storeAccessToken:accessToken service:_keychainService];
 }
 
 - (DBAccessToken *)retrieveFirstAccessToken {
@@ -452,14 +460,14 @@ static DBOAuthManager *s_sharedOAuthManager;
 }
 
 - (DBAccessToken *)retrieveAccessToken:(NSString *)tokenUid {
-  return [DBSDKKeychain retrieveTokenWithUid:tokenUid];
+  return [DBSDKKeychain retrieveTokenWithUid:tokenUid service:_keychainService];
 }
 
 - (NSDictionary<NSString *, DBAccessToken *> *)retrieveAllAccessTokens {
-  NSArray<NSString *> *userIds = [DBSDKKeychain retrieveAllTokenIds];
+	NSArray<NSString *> *userIds = [DBSDKKeychain retrieveAllTokenIdsAtService: _keychainService];
   NSMutableDictionary<NSString *, DBAccessToken *> *result = [[NSMutableDictionary alloc] init];
   for (NSString *userId in userIds) {
-    DBAccessToken *token = [DBSDKKeychain retrieveTokenWithUid:userId];
+    DBAccessToken *token = [DBSDKKeychain retrieveTokenWithUid:userId service:_keychainService];
     if (token) {
       result[userId] = token;
     }
@@ -472,11 +480,11 @@ static DBOAuthManager *s_sharedOAuthManager;
 }
 
 - (BOOL)clearStoredAccessToken:(NSString *)tokenUid {
-  return [DBSDKKeychain deleteTokenWithUid:tokenUid];
+  return [DBSDKKeychain deleteTokenWithUid:tokenUid service:_keychainService];
 }
 
 - (BOOL)clearStoredAccessTokens {
-  return [DBSDKKeychain clearAllTokens];
+  return [DBSDKKeychain clearAllTokensAtService:_keychainService];
 }
 
 @end

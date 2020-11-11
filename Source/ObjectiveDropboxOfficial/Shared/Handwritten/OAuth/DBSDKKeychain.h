@@ -16,25 +16,26 @@ NS_ASSUME_NONNULL_BEGIN
 @interface DBSDKKeychain : NSObject
 
 /// Stores DBAccessToken in the keychain.
-+ (BOOL)storeAccessToken:(DBAccessToken *)accessToken;
++ (BOOL)storeAccessToken:(DBAccessToken *)accessToken service:(NSString *)service;
 
 /// Retrieves a DBAccessToken from the corresponding key (uid) from the keychain.
-+ (nullable DBAccessToken *)retrieveTokenWithUid:(NSString *)uid;
++ (nullable DBAccessToken *)retrieveTokenWithUid:(NSString *)uid service:(NSString *)service;
 
 /// Retrieves all token uids from the keychain.
-+ (NSArray<NSString *> *)retrieveAllTokenIds;
++ (NSArray<NSString *> *)retrieveAllTokenIdsAtService:(NSString *)service;
 
 /// Deletes the stored token value for a key (uid).
-+ (BOOL)deleteTokenWithUid:(NSString *)uid;
++ (BOOL)deleteTokenWithUid:(NSString *)uid service:(NSString *)service;
 
 /// Deletes all key / value pairs in the keychain.
-+ (BOOL)clearAllTokens;
++ (BOOL)clearAllTokensAtService:(NSString *)service;
 
 /// Checks if performing a v1 token migration is necessary, and if so, performs it.
 + (BOOL)checkAndPerformV1TokenMigration:(DBTokenMigrationResponseBlock)responseBlock
                                   queue:(nullable NSOperationQueue *)queue
                                  appKey:(NSString *)appKey
-                              appSecret:(NSString *)appSecret;
+                              appSecret:(NSString *)appSecret
+								service:(NSString *)service;
 
 @end
 

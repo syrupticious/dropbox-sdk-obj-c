@@ -49,17 +49,17 @@ static const char *kV1OSXAccountName = "Dropbox";
   });
 }
 
-+ (BOOL)storeAccessToken:(DBAccessToken *)accessToken {
++ (BOOL)storeAccessToken:(DBAccessToken *)accessToken service:(NSString *)service  {
   NSData *data = [DBAccessToken covertTokenToData:accessToken];
   if (data) {
-    return [self storeDataValueWithKey:accessToken.uid value:data];
+    return [self storeDataValueWithKey:accessToken.uid value:data service:service];
   } else {
     return NO;
   }
 }
 
-+ (DBAccessToken *)retrieveTokenWithUid:(NSString *)uid {
-  NSData *data = [self lookupTokenDataWithKey:uid];
++ (DBAccessToken *)retrieveTokenWithUid:(NSString *)uid service:(NSString *)service {
+  NSData *data = [self lookupTokenDataWithKey:uid service:service];
   if (!data) {
     return nil;
   }
@@ -78,9 +78,10 @@ static const char *kV1OSXAccountName = "Dropbox";
   }
 }
 
-+ (NSArray<NSString *> *)retrieveAllTokenIds {
++ (NSArray<NSString *> *)retrieveAllTokenIdsAtService:(NSString *)service {
   NSMutableDictionary<id, id> *query = [DBSDKKeychain
-      queryWithDict:@{(id)kSecReturnAttributes : (id)kCFBooleanTrue, (id)kSecMatchLimit : (id)kSecMatchLimitAll}];
+      queryWithDict:@{(id)kSecReturnAttributes : (id)kCFBooleanTrue, (id)kSecMatchLimit : (id)kSecMatchLimitAll}
+      service:service];
   CFDataRef dataResult = nil;
   OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&dataResult);
 
@@ -97,29 +98,30 @@ static const char *kV1OSXAccountName = "Dropbox";
   return results;
 }
 
-+ (BOOL)deleteTokenWithUid:(NSString *)uid {
-  NSMutableDictionary<id, id> *query = [DBSDKKeychain queryWithDict:@{(id)kSecAttrAccount : uid}];
++ (BOOL)deleteTokenWithUid:(NSString *)uid service:(NSString *)service  {
+  NSMutableDictionary<id, id> *query = [DBSDKKeychain queryWithDict:@{(id)kSecAttrAccount : uid} service:service];
   return SecItemDelete((__bridge CFDictionaryRef)query) == noErr;
 }
 
-+ (BOOL)clearAllTokens {
-  NSMutableDictionary<id, id> *query = [DBSDKKeychain queryWithDict:@{}];
++ (BOOL)clearAllTokensAtService:(NSString *)service {
+  NSMutableDictionary<id, id> *query = [DBSDKKeychain queryWithDict:@{} service:service];
   return SecItemDelete((__bridge CFDictionaryRef)query) == noErr;
 }
 
-+ (BOOL)storeDataValueWithKey:(NSString *)key value:(NSData *)value {
++ (BOOL)storeDataValueWithKey:(NSString *)key value:(NSData *)value service:(NSString *)service {
   NSMutableDictionary<id, id> *query =
-      [DBSDKKeychain queryWithDict:@{(id)kSecAttrAccount : key, (id)kSecValueData : value}];
+	[DBSDKKeychain queryWithDict:@{(id)kSecAttrAccount : key, (id)kSecValueData : value} service:service];
   SecItemDelete((__bridge CFDictionaryRef)query);
   return SecItemAdd((__bridge CFDictionaryRef)query, nil) == noErr;
 }
 
-+ (NSData *)lookupTokenDataWithKey:(NSString *)key {
++ (NSData *)lookupTokenDataWithKey:(NSString *)key service:(NSString *)service {
   NSMutableDictionary<id, id> *query = [DBSDKKeychain queryWithDict:@{
     (id)kSecAttrAccount : key,
     (id)kSecReturnData : (id)kCFBooleanTrue,
     (id)kSecMatchLimit : (id)kSecMatchLimitOne
-  }];
+  }
+	service:service];
 
   CFDataRef dataResult = nil;
   OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&dataResult);
@@ -131,12 +133,12 @@ static const char *kV1OSXAccountName = "Dropbox";
   return nil;
 }
 
-+ (NSMutableDictionary<id, id> *)queryWithDict:(NSDictionary<NSString *, id> *)query {
++ (NSMutableDictionary<id, id> *)queryWithDict:(NSDictionary<NSString *, id> *)query
+										 service:(NSString *)service {
   NSMutableDictionary<id, id> *queryResult = [query mutableCopy];
-  NSString *bundleId = [NSBundle mainBundle].bundleIdentifier ?: @"";
 
   [queryResult setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
-  [queryResult setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, bundleId]
+  [queryResult setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, service]
                   forKey:(id)kSecAttrService];
   [queryResult setObject:(id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly forKey:(id)kSecAttrAccessible];
 
@@ -163,7 +165,8 @@ static const char *kV1OSXAccountName = "Dropbox";
 + (BOOL)checkAndPerformV1TokenMigration:(DBTokenMigrationResponseBlock)responseBlock
                                   queue:(NSOperationQueue *)queue
                                  appKey:(NSString *)appKey
-                              appSecret:(NSString *)appSecret {
+                              appSecret:(NSString *)appSecret
+								service:(NSString *)service {
   NSOperationQueue *queueToUse = queue ?: [NSOperationQueue mainQueue];
 
   NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
@@ -194,7 +197,8 @@ static const char *kV1OSXAccountName = "Dropbox";
                                   appKey:appKey
                                appSecret:appSecret
                            responseBlock:responseBlock
-                                   queue:queueToUse];
+                                   queue:queueToUse
+								 service:service];
       }];
       return YES;
     }
@@ -376,7 +380,8 @@ static const char *kV1OSXAccountName = "Dropbox";
                     appKey:(NSString *)appKey
                  appSecret:(NSString *)appSecret
              responseBlock:(DBTokenMigrationResponseBlock)responseBlock
-                     queue:(NSOperationQueue *)queue {
+                     queue:(NSOperationQueue *)queue
+				   service:(NSString *)service{
   DBAppClient *appAuthClient = [[DBAppClient alloc] initWithAppKey:appKey appSecret:appSecret];
 
   dispatch_group_t tokenConvertGroup = dispatch_group_create();
@@ -453,7 +458,7 @@ static const char *kV1OSXAccountName = "Dropbox";
   dispatch_group_notify(tokenConvertGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
     if (shouldRetry == NO) {
       for (NSString *uid in tokenConversionResults) {
-        [self storeAccessToken:[DBAccessToken createWithLongLivedAccessToken:tokenConversionResults[uid] uid:uid]];
+        [self storeAccessToken:[DBAccessToken createWithLongLivedAccessToken:tokenConversionResults[uid] uid:uid] service: service];
       }
       NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
       [userDefaults setBool:YES forKey:[NSString stringWithFormat:kV1TokenMigrationOccurredKeyBase, appKey]];

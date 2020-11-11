@@ -28,6 +28,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// to be set when downloading via an app extension.
 @property (nonatomic, readonly, nullable) NSString *sharedContainerIdentifier;
 
+/// The service name for the keychain. If it is nil, the default keychain service name is used, which consists of the main bundle id.
+/// The keychain service name must be set manually if the keychain is to be shared (for example with an app extension).  
+@property (nonatomic, readonly, nullable) NSString *keychainService;
+
 ///
 /// Convenience constructor.
 ///
@@ -147,6 +151,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// "performs" user API actions on behalf of a team member.
 /// @param sharedContainerIdentifier The identifier for the shared container into which files in background URL sessions
 /// should be downloaded. This needs to be set when downloading via an app extension.
+/// @param keychainService The service name for the keychain. Leave nil to use default
 ///
 /// @return An initialized instance.
 ///
@@ -156,7 +161,8 @@ NS_ASSUME_NONNULL_BEGIN
                     asMemberId:(nullable NSString *)asMemberId
                  delegateQueue:(nullable NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier;
+     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService;
 
 ///
 /// Full constructor.
@@ -175,6 +181,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param sharedContainerIdentifier The identifier for the shared container into which files in background URL sessions
 /// should be downloaded. This needs to be set when downloading via an app extension.
 /// @param additionalHeaders Additional HTTP headers to be injected into each client request.
+/// @param keychainService The service name for the keychain. Leave nil to use default
 ///
 /// @return An initialized instance.
 ///
@@ -185,7 +192,8 @@ NS_ASSUME_NONNULL_BEGIN
              additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(nullable NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier;
+	 sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService;
 
 ///
 /// Full constructor, with debug hostname override.
@@ -205,6 +213,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param sharedContainerIdentifier The identifier for the shared container into which files in background URL sessions
 /// should be downloaded. This needs to be set when downloading via an app extension.
 /// @param additionalHeaders Additional HTTP headers to be injected into each client request.
+/// @param keychainService The service name for the keychain. Leave nil to use default
 ///
 /// @return An initialized instance.
 ///
@@ -216,7 +225,8 @@ NS_ASSUME_NONNULL_BEGIN
              additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(nullable NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier;
+     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService;
 
 ///
 /// Full constructor, with debug hostname and redirectURL override.
@@ -237,6 +247,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param sharedContainerIdentifier The identifier for the shared container into which files in background URL sessions
 /// should be downloaded. This needs to be set when downloading via an app extension.
 /// @param additionalHeaders Additional HTTP headers to be injected into each client request.
+/// @param keychainService The service name for the keychain. Leave nil to use default
 ///
 /// @return An initialized instance.
 ///
@@ -250,7 +261,8 @@ NS_ASSUME_NONNULL_BEGIN
              additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders
                  delegateQueue:(nullable NSOperationQueue *)delegateQueue
         forceForegroundSession:(BOOL)forceForegroundSession
-     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier;
+     sharedContainerIdentifier:(nullable NSString *)sharedContainerIdentifier
+			   keychainService:(nullable NSString *)keychainService;
 
 @end
 

@@ -143,13 +143,15 @@ NS_ASSUME_NONNULL_BEGIN
 /// is used for querying endpoints that have "app auth" authentication type.
 /// @param appSecret The consumer app secret associated with the app that is integrating with the Dropbox API. Here, app
 /// key is used for querying endpoints that have "app auth" authentication type.
+/// @param keychainService The service name for the keychain. Leave nil to use default
 ///
 /// @return Whether a token migration will be performed.
 ///
 + (BOOL)checkAndPerformV1TokenMigration:(DBTokenMigrationResponseBlock)responseBlock
                                   queue:(nullable NSOperationQueue *)queue
                                  appKey:(NSString *)appKey
-                              appSecret:(NSString *)appSecret;
+                              appSecret:(NSString *)appSecret
+						keychainService:(nullable NSString *)keychainService;
 
 @end
 

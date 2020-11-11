@@ -111,6 +111,7 @@ NS_ASSUME_NONNULL_BEGIN
   NSString *_host;
   NSMutableArray<NSURL *> *_urls;
   DBOAuthPKCESession *_authSession;
+  NSString *_keychainService;
 }
 
 /// Sets the locale of the OAuth flow webpages. If `nil`, then defaults to device locale.
@@ -163,12 +164,13 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param appKey The app key from the developer console that identifies this app.
 /// @param host The host of the OAuth web flow. Leave nil to use default host.
 /// @param redirectURL The redirect url of the OAuth web flow. Default to "db-<appKey>://2/token"
-///
+/// @param keychainService The service name for the keychain. Leave nil to use default
 /// @return An initialized instance.
 ///
 - (instancetype)initWithAppKey:(NSString *)appKey
                           host:(nullable NSString *)host
-                   redirectURL:(nullable NSString *)redirectURL;
+                   redirectURL:(nullable NSString *)redirectURL
+			   keychainService:(nullable NSString *)keychainService;
 
 #pragma mark - Auth flow methods
 
