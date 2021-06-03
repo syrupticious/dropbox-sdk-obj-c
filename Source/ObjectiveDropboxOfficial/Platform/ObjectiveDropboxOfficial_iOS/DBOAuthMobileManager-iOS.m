@@ -31,7 +31,11 @@ static NSString *kDBLinkNonce = @"dropbox.sync.nonce";
 }
 
 - (instancetype)initWithAppKey:(NSString *)appKey host:(NSString *)host redirectURL:(NSString *)redirectURL {
-  self = [super initWithAppKey:appKey host:host redirectURL:redirectURL keychainService:nil];
+	return [self initWithAppKey:appKey host:host redirectURL:nil keychainService: nil];
+}
+
+- (instancetype)initWithAppKey:(NSString *)appKey host:(NSString *)host redirectURL:(NSString *)redirectURL keychainService:(nullable NSString *)keychainService {
+  self = [super initWithAppKey:appKey host:host redirectURL:redirectURL keychainService:keychainService];
   if (self) {
     _dauthRedirectURL = [NSURL URLWithString:[NSString stringWithFormat:@"db-%@://1/connect", appKey]];
     [_urls addObject:_dauthRedirectURL];
