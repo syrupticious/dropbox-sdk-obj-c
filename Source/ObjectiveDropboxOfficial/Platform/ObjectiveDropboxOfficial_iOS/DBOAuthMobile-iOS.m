@@ -19,7 +19,7 @@ static DBMobileSharedApplication *s_mobileSharedApplication;
 
 @implementation DBMobileSharedApplication {
   UIApplication *_sharedApplication;
-  UIViewController *_controller;
+  __weak UIViewController *_Nullable _controller;
   void (^_openURL)(NSURL *);
 }
 

@@ -11,17 +11,17 @@
 
 #import "TestClasses.h"
 #import "TestData.h"
+@class TeamTests;
 
 @interface DropboxTester : NSObject
-
+- (nonnull instancetype)initWithUserClient:(DBUserClient *_Nonnull)userClient testData:(TestData *_Nonnull)testData;
 - (nonnull instancetype)initWithTestData:(TestData * _Nonnull)testData;
 
 - (void)testAllUserAPIEndpoints:(void (^ _Nonnull)(void))nextTest asMember:(BOOL)asMember;
+- (void)testFilesEndpoints:(void (^ _Nonnull)(void))nextTest asMember:(BOOL)asMember;
 
 @property TestData * _Nonnull testData;
-@property DBAppClient * _Nonnull unauthorizedClient;
 @property DBAUTHUserAuthRoutes * _Nullable auth;
-@property DBAUTHAppAuthRoutes * _Nullable appAuth;
 @property DBFILESUserAuthRoutes * _Nullable files;
 @property DBSHARINGUserAuthRoutes * _Nullable sharing;
 @property DBUSERSUserAuthRoutes * _Nullable users;
@@ -30,13 +30,18 @@
 
 @interface DropboxTeamTester : NSObject
 
+- (nonnull instancetype)initWithTeamClient:(DBTeamClient *_Nonnull)teamClient testData:(TestData * _Nonnull)testData;
 - (nonnull instancetype)initWithTestData:(TestData * _Nonnull)testData;
 
 - (void)testAllTeamMemberFileAcessActions:(void (^ _Nonnull)(void))nextTest;
 - (void)testAllTeamMemberManagementActions:(void (^ _Nonnull)(void))nextTest;
 
-@property DBTEAMTeamAuthRoutes * _Nullable team;
+- (void)testTeamMemberFileAcessActions:(void (^ _Nonnull)(TeamTests *_Nonnull))nextTest;
+- (void)testTeamMemberManagementActions:(void (^ _Nonnull)(void))nextTest;
+
+@property DBTeamClient * _Nonnull teamClient;
 @property TestData * _Nonnull testData;
+@property DBTEAMTeamAuthRoutes * _Nonnull team;
 
 @end
 
@@ -141,7 +146,7 @@
 - (nonnull instancetype)init:(DropboxTeamTester * _Nonnull)tester;
 
 // TeamMemberFileAccess
-
+- (void)initMembersGetInfoAndMemberId:(void (^_Nonnull)(NSString * _Nullable))nextTest;
 - (void)initMembersGetInfo:(void (^_Nonnull)(void))nextTest;
 - (void)listMemberDevices:(void (^_Nonnull)(void))nextTest;
 - (void)listMembersDevices:(void (^_Nonnull)(void))nextTest;

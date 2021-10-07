@@ -120,7 +120,7 @@
     int statusCode = (int)httpResponse.statusCode;
     NSDictionary *httpHeaders = httpResponse.allHeaderFields;
 
-    DBRoute *route = strongSelf->_route;
+    DBRoute *route = strongSelf.route;
 
     BOOL successful = NO;
 
@@ -215,7 +215,7 @@
     int statusCode = (int)httpResponse.statusCode;
     NSDictionary *httpHeaders = httpResponse.allHeaderFields;
 
-    DBRoute *route = strongSelf->_route;
+    DBRoute *route = strongSelf.route;
 
     BOOL successful = NO;
 
@@ -318,7 +318,7 @@
       resultData = [headerString dataUsingEncoding:NSUTF8StringEncoding];
     }
 
-    DBRoute *route = strongSelf->_route;
+    DBRoute *route = strongSelf.route;
 
     BOOL successful = NO;
 
@@ -328,8 +328,11 @@
     NSURL *destination = strongSelf->_destination;
 
     if (clientError || !resultData || !location) {
-      // error data is in response body (downloaded to output tmp file)
       NSData *errorData = location ? [NSData dataWithContentsOfURL:location] : nil;
+      if (errorData == nil && location.path != nil) {
+        // error data is in response body (downloaded to output tmp file)
+        errorData = [NSData dataWithContentsOfURL:[NSURL fileURLWithPath:location.path]];
+      }
       networkError = [DBTransportBaseClient dBRequestErrorWithErrorData:errorData
                                                             clientError:clientError
                                                              statusCode:statusCode
@@ -451,7 +454,7 @@
       resultData = [headerString dataUsingEncoding:NSUTF8StringEncoding];
     }
 
-    DBRoute *route = strongSelf->_route;
+    DBRoute *route = strongSelf.route;
 
     BOOL successful = NO;
 

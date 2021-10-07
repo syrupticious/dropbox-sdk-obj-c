@@ -51,6 +51,7 @@ NOTE: Please do not rely on `master` in production. Please instead use one of ou
 * [Documentation](#documentation)
 * [Stone](#stone)
 * [Modifications](#modifications)
+* [App Store Connect Privacy Labels](#app-store-connect-privacy-labels)
 * [Bugs](#bugs)
 
 ---
@@ -168,10 +169,12 @@ brew install carthage
 
 ```
 # ObjectiveDropboxOfficial
-github "https://github.com/dropbox/dropbox-sdk-obj-c" ~> 6.0.0
+github "https://github.com/dropbox/dropbox-sdk-obj-c" ~> 6.0.1
 ```
 
-Then, run the following command to checkout and build the Dropbox Objective-C SDK repository:
+To integrate the Dropbox Objective-C SDK into your project, take the following steps:
+
+Run the following command to checkout and build the Dropbox Objective-C SDK repository:
 
 ##### iOS
 
@@ -179,47 +182,12 @@ Then, run the following command to checkout and build the Dropbox Objective-C SD
 carthage update --platform iOS --use-xcframeworks
 ```
 
-In the Project Navigator in Xcode, select your project, and then navigate to **General** > **Linked Frameworks and Libraries**, then drag and drop `ObjectiveDropboxOfficial.xcframework` (from `Carthage/Build/iOS`).
-
-Then, navigate to **Build Phases** > **+** > **New Run Script Phase**. In the newly-created **Run Script** section, add the following code to the script body area (beneath the "Shell" box):
-
-```
-/usr/local/bin/carthage copy-frameworks
-```
-
-Then, navigate to the **Input Files** section and add the following path:
-
-```
-$(SRCROOT)/Carthage/Build/iOS/ObjectiveDropboxOfficial.xcframework
-```
-
 ##### macOS
 ```bash
 carthage update --platform Mac --use-xcframeworks
 ```
 
-In the Project Navigator in Xcode, select your project, and then navigate to **General** > **Embedded Binaries**, then drag and drop `ObjectiveDropboxOfficial.xcframework` (from `Carthage/Build`).
-
-Then navigate to **Build Phases** > **+** > **New Copy Files Phase**. In the newly-created **Copy Files** section, click the **Destination** drop-down menu and select **Products Directory**, then drag and drop `ObjectiveDropboxOfficial.xcframework.dSYM` (from `Carthage/Build/ObjectiveDropboxOfficial.xcframework/macos-arm64_x86_64/`).
-
-##### Common issues
-
-###### Linking errors
-
-Please make sure the SDK is inside of your Xcode project folder, otherwise your app may run into linking errors.
-
-If you wish to keep the SDK outside of your Xcode project folder (perhaps to share between different apps), you will need to configure your a few environmental variables.
-
-- Project Navigator > build target > **Build Settings** > **Header Search Path** add `$(PROJECT_DIR)/../<PATH_TO_SDK>/dropbox-sdk-obj-c/Source/ObjectiveDropboxOfficial (recursive)`
-
-- Project Navigator > build target > **Build Settings** > **Framework Search Paths** add `$(PROJECT_DIR)/../<PATH_TO_SDK>/dropbox-sdk-obj-c/Source/ObjectiveDropboxOfficial/build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME) (non-recursive)`
-
-###### dyld: Library not loaded error
-
-If you receive a run-time error message like `dyld: Library not loaded:`, please try the following:
-
-- Add ObjectiveDropboxOfficial framework to **Embedded Binaries** as well as **Linked Frameworks and Libraries**.
-- Project Navigator > build target > **Build Settings** > **Linking** > **Runpath Search Paths** add `$(inherited) @executable_path/Frameworks`.
+Then, in the Project Navigator in Xcode, select your project, and then navigate to your project's build target > **General** > **Frameworks, Libraries and Embedded Content**. Drag the `ObjectiveDropboxOfficial.xcframework` file from `Carthage/Build` into the table and choose `Embed & Sign`.
 
 ---
 
@@ -250,20 +218,15 @@ Then, run the following command to checkout and build the Dropbox Objective-C SD
 ##### iOS
 
 ```bash
-carthage update --platform iOS
+carthage update --platform iOS --use-xcframeworks
 ```
-Once you have checked-out out all the necessary code via Carthage, drag the `Carthage/Checkouts/ObjectiveDropboxOfficial/Source/ObjectiveDropboxOfficial/ObjectiveDropboxOfficial.xcodeproj` file into your project as a subproject.
-
-Then, in the Project Navigator in Xcode, select your project, and then navigate to your project's build target > **General** > **Linked Frameworks and Libraries** > **+** and then add the `ObjectiveDropboxOfficial.framework` file for the iOS platform.
 
 ##### macOS
 ```bash
-carthage update --platform Mac
+carthage update --platform Mac --use-xcframeworks
 ```
 
 Once you have checked-out out all the necessary code via Carthage, drag the `Carthage/Checkouts/ObjectiveDropboxOfficial/Source/ObjectiveDropboxOfficial/ObjectiveDropboxOfficial.xcodeproj` file into your project as a subproject.
-
-Then, in the Project Navigator in Xcode, select your project, and then navigate to your project's build target > **General** > **Embedded Binaries** > **+** and then add the `ObjectiveDropboxOfficial.framework` file for the macOS platform.
 
 ---
 
@@ -457,6 +420,32 @@ To handle the redirection back into the Objective-C SDK once the authentication 
   };
   BOOL canHandle = [DBClientsManager handleRedirectURL:url completion:completion];
   return canHandle;
+}
+```
+
+Or if your app is iOS13+, or your app also supports Scenes, add the following code into your application's main scene delegate:
+```objective-c
+#import <ObjectiveDropboxOfficial/ObjectiveDropboxOfficial.h>
+
+- (void)scene:(UIScene *)scene 
+        openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts {
+  DBOAuthCompletion completion = ^(DBOAuthResult *authResult) {
+    if (authResult != nil) {
+      if ([authResult isSuccess]) {
+        NSLog(@"\n\nSuccess! User is logged into Dropbox.\n\n");
+      } else if ([authResult isCancel]) {
+        NSLog(@"\n\nAuthorization flow was manually canceled by user!\n\n");
+      } else if ([authResult isError]) {
+        NSLog(@"\n\nError: %@\n\n", authResult);
+      }
+    }
+  };
+  for (UIOpenURLContext *context in URLContexts) {
+    if ([DBClientsManager handleRedirectURL:context.URL completion:completion]) { 
+      // stop iterating after the first handle-able url
+      break;
+    }
+  }
 }
 ```
 
@@ -1150,6 +1139,44 @@ If you're interested in manually generating the SDK serialization logic, perform
 
 To ensure your changes have not broken any existing functionality, you can run a series of integration tests by
 following the instructions listed in the `ViewController.m` file.
+
+---
+
+## App Store Connect Privacy Labels
+
+To assist developers using Dropbox SDKs in filling out Apple’s Privacy Practices Questionnaire, we’ve provided the below information on the data that may be collected and used by Dropbox. 
+
+As you complete the questionnaire you should note that the below information is general in nature. Dropbox SDKs are designed to be configured by the developer to incorporate Dropbox functionality as is best suited to their application. As a result of this customizable nature of the Dropbox SDKs, we are unable to provide information on the actual data collection and use for each application. We advise developers reference our Dropbox for HTTP Developers for specifics on how data is collected by each Dropbox API. 
+
+In addition, you should note that the information below only identifies Dropbox’s collection and use of data. You are responsible for identifying your own collection and use of data in your app, which may result in different questionnaire answers than identified below:
+
+| Data                    | Collected by Dropbox                                                      | Data Use                                                                 | Data Linked to the User | Tracking |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------- | -------- |
+| **Contact Info**        |                                                                           |                                                                          |                         |          |
+| &emsp;• Name            | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| &emsp;• Email Address   | May be collected<br>(if you enable authentication using an email address) | • Application functionality                                              | Y                       | N        |
+| **Health & Fitness**    | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Financial Info**      | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Location**            | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Sensitive Info**      | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Contacts**            | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **User Content**        |                                                                           |                                                                          |                         |          |
+| &emsp;• Audio Data      | May be collected                                                          | • Application functionality                                              | Y                       | N        |
+| &emsp;• Photos or Videos | May be collected                                                          | • Application functionality                                              | Y                       | N        |
+| &emsp;• Other User Content | May be collected                                                          | • Application functionality                                              | Y                       | N        |
+| **Browsing History**    | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Search History**      |                                                                           |                                                                          |                         |          |
+| &emsp;• Search History  | May be collected<br>(if using search functionality)                       | • Application functionality<br>• Analytics                               | Y                       | N        |
+| **Identifiers**         |                                                                           |                                                                          |                         |          |
+| &emsp;• User ID         | Collected                                                                 | • Application functionality<br>• Analytics                               | Y                       | N        |
+| **Purchases**           | Not collected                                                             | N/A                                                                      | N/A                     | N/A      |
+| **Usage Data**          |                                                                           |                                                                          |                         |          |
+| &emsp;• Product Interaction | Collected                                                                 | • Application functionality <br>• Analytics<br>• Product personalization | Y                       | N        |
+| **Diagnostics**         |                                                                           |                                                                          |                         |          |
+| &emsp;• Other Diagnostic Data | Collected<br>(API call logs)                                              | • Application functionality                                              | Y                       | N        |
+| **Other Data**          | N/A                                                                       | N/A                                                                      | N/A                     | N/A      |
+
+
 
 ---
 

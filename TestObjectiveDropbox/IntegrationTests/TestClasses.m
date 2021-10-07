@@ -19,21 +19,24 @@ void MyLog(NSString *format, ...) {
 }
 
 @implementation DropboxTester
-
-- (instancetype)initWithTestData:(TestData *)testData {
+- (instancetype)initWithUserClient:(DBUserClient *)userClient testData:(TestData *)testData {
     self = [super init];
     if (self) {
-        DBUserClient *clientToUse = s_teamAdminUserClient ?: [DBClientsManager authorizedClient];
-        NSAssert(clientToUse, @"No authorized user client.");
+        NSParameterAssert(userClient);
+        NSParameterAssert(testData);
         _testData = testData;
-        DBAppClient *unauthorizedClient = [[DBAppClient alloc] initWithAppKey:_testData.fullDropboxAppKey appSecret:_testData.fullDropboxAppSecret];
-        _unauthorizedClient = unauthorizedClient;
-        _auth = clientToUse.authRoutes;
-        _appAuth = unauthorizedClient.authRoutes;
-        _files = clientToUse.filesRoutes;
-        _sharing = clientToUse.sharingRoutes;
-        _users = clientToUse.usersRoutes;
+        _auth = userClient.authRoutes;
+        _files = userClient.filesRoutes;
+        _sharing = userClient.sharingRoutes;
+        _users = userClient.usersRoutes;
     }
+    return self;
+}
+
+- (instancetype)initWithTestData:(TestData *)testData {
+    DBUserClient *clientToUse = s_teamAdminUserClient ?: [DBClientsManager authorizedClient];
+    NSAssert(clientToUse, @"No authorized user client.");
+    self = [self initWithUserClient:clientToUse testData:testData ];
     return self;
 }
 
@@ -225,15 +228,20 @@ void MyLog(NSString *format, ...) {
 @end
 
 @implementation DropboxTeamTester
-
-- (instancetype)initWithTestData:(TestData *)testData {
+- (instancetype)initWithTeamClient:(DBTeamClient *)teamClient testData:(TestData * _Nonnull)testData {
     self = [super init];
     if (self) {
-        NSAssert([DBClientsManager authorizedTeamClient], @"No authorized team client.");
-        
         _testData = testData;
-        _team = [DBClientsManager authorizedTeamClient].teamRoutes;
+        _teamClient = teamClient;
+        _team = teamClient.teamRoutes;
     }
+    return self;
+}
+
+- (instancetype)initWithTestData:(TestData *)testData {
+    NSAssert([DBClientsManager authorizedTeamClient], @"No authorized team client.");
+
+    self = [self initWithTeamClient:[DBClientsManager authorizedTeamClient] testData:testData];
     return self;
 }
 
@@ -247,9 +255,12 @@ void MyLog(NSString *format, ...) {
         }
     };
     void (^testPerformActionAsMember)(TeamTests *) = ^(TeamTests *teamTests) {
-        [teamTests initMembersGetInfo:^{}];
-        DropboxTester *tester = [[DropboxTester alloc] initWithTestData:self->_testData];
-        [tester testAllUserAPIEndpoints:end asMember:YES];
+        [teamTests initMembersGetInfoAndMemberId:^(NSString * memberId){
+            NSAssert(memberId != nil, @"Memberid must exist");
+            DBUserClient *uesrClient = [self->_teamClient userClientWithMemberId:memberId];
+            DropboxTester *tester = [[DropboxTester alloc] initWithUserClient:uesrClient testData:self->_testData ];
+            [tester testAllUserAPIEndpoints:end asMember:YES];
+        }];
     };
     void (^testTeamMemberFileAcessActions)(void) = ^{
         [self testTeamMemberFileAcessActions:testPerformActionAsMember];
@@ -1159,7 +1170,12 @@ void MyLog(NSString *format, ...) {
             if (result) {
                 MyLog(@"%@\n", result);
             } else {
-                [TestFormat abort:networkError routeError:routeError];
+                if (networkError.isRateLimitError) {
+                    sleep(networkError.backoff.unsignedIntValue);
+                    [self listFolderLongpollAndTrigger:nextTest];
+                } else {
+                    [TestFormat abort:networkError routeError:routeError];
+                }
             }
         } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
             [TestFormat printSentProgress:bytesSent
@@ -1262,7 +1278,17 @@ void MyLog(NSString *format, ...) {
                 [TestFormat abort:error routeError:routeError];
             }
         } else {
-            [TestFormat abort:error routeError:routeError];
+            if(routeError.isBadPath && routeError.badPath.isAlreadyShared) {
+                // prob leftover from another test
+                [self unshareFolder:^{
+                    [self shareFolder:nextTest];
+                }];
+            } else if (error.isRateLimitError) {
+                sleep(error.backoff.unsignedIntValue);
+                [self shareFolder:nextTest];
+            } else {
+                [TestFormat abort:error routeError:routeError];
+            }
         }
     } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
         [TestFormat printSentProgress:bytesSent
@@ -1389,35 +1415,50 @@ void MyLog(NSString *format, ...) {
     }];
 }
 
+- (void)checkJobStatus:(NSString *)asyncJobId retryCount:(int)retryCount nextTest:(void (^)(void))nextTest{
+    [[[self->_tester.sharing checkJobStatus:asyncJobId] setResponseBlock:^(DBSHARINGJobStatus *result, DBASYNCPollError *routeError,
+                                                                        DBRequestError *error) {
+        if (result) {
+            MyLog(@"%@\n", result);
+            if ([result isInProgress]) {
+                [TestFormat
+                 printOffset:[NSString
+                              stringWithFormat:@"Folder member not yet removed! Job id: %@. Please adjust test order.",
+                              asyncJobId]];
+                
+                if (retryCount > 0) {
+                    MyLog(@"Sleeping for 3 seconds, then trying again");
+                    for (int i = 0; i < 3; i++) {
+                        sleep(1);
+                        MyLog(@".");
+                    }
+                    MyLog(@"\n");
+                    [TestFormat printOffset:@"Retrying!"];
+                    [self checkJobStatus:asyncJobId retryCount:retryCount - 1 nextTest:nextTest];
+                }
+            } else if ([result isComplete]) {
+                [TestFormat printSubTestEnd:NSStringFromSelector(_cmd)];
+                nextTest();
+            } else if ([result isFailed]) {
+                [TestFormat abort:error routeError:result.failed];
+            }
+        } else {
+            [TestFormat abort:error routeError:routeError];
+        }
+    } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
+        [TestFormat printSentProgress:bytesSent
+                       totalBytesSent:totalBytesSent
+             totalBytesExpectedToSend:totalBytesExpectedToSend];
+    }];
+}
+
 - (void)removeFolderMember:(void (^)(void))nextTest {
     [TestFormat printSubTestBegin:NSStringFromSelector(_cmd)];
     DBSHARINGMemberSelector *memberSelector =
     [[DBSHARINGMemberSelector alloc] initWithDropboxId:_tester.testData.accountId3];
     
     void (^checkJobStatus)(NSString *) = ^(NSString *asyncJobId) {
-        [[[self->_tester.sharing checkJobStatus:asyncJobId] setResponseBlock:^(DBSHARINGJobStatus *result, DBASYNCPollError *routeError,
-                                                                               DBRequestError *error) {
-            if (result) {
-                MyLog(@"%@\n", result);
-                if ([result isInProgress]) {
-                    [TestFormat
-                     printOffset:[NSString
-                                  stringWithFormat:@"Folder member not yet removed! Job id: %@. Please adjust test order.",
-                                  asyncJobId]];
-                } else if ([result isComplete]) {
-                    [TestFormat printSubTestEnd:NSStringFromSelector(_cmd)];
-                    nextTest();
-                } else if ([result isFailed]) {
-                    [TestFormat abort:error routeError:result.failed];
-                }
-            } else {
-                [TestFormat abort:error routeError:routeError];
-            }
-        } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
-            [TestFormat printSentProgress:bytesSent
-                           totalBytesSent:totalBytesSent
-                 totalBytesExpectedToSend:totalBytesExpectedToSend];
-        }];
+        [self checkJobStatus:asyncJobId retryCount:5 nextTest:nextTest];
     };
     
     [[[_tester.sharing removeFolderMember:_sharedFolderId member:memberSelector leaveACopy:[NSNumber numberWithBool:NO]]
@@ -1427,8 +1468,8 @@ void MyLog(NSString *format, ...) {
             if ([result isAsyncJobId]) {
                 [TestFormat printOffset:[NSString stringWithFormat:@"Folder member not yet removed! Job id: %@",
                                          result.asyncJobId]];
-                MyLog(@"Sleeping for 3 seconds, then trying again");
-                for (int i = 0; i < 3; i++) {
+                MyLog(@"Sleeping for 5 seconds, then trying again");
+                for (int i = 0; i < 5; i++) {
                     sleep(1);
                     MyLog(@".");
                 }
@@ -1640,8 +1681,13 @@ void MyLog(NSString *format, ...) {
 /**
  Permission: TEAM member file access
  */
-
 - (void)initMembersGetInfo:(void (^)(void))nextTest {
+    [self initMembersGetInfoAndMemberId:^(NSString * _Nullable memberId) {
+        nextTest();
+    }];
+}
+
+- (void)initMembersGetInfoAndMemberId:(void (^)(NSString * _Nullable))nextTest {
     [TestFormat printSubTestBegin:NSStringFromSelector(_cmd)];
     DBTEAMUserSelectorArg *userSelectArg = [[DBTEAMUserSelectorArg alloc] initWithEmail:_tester.testData.teamMemberEmail];
     [[[_tester.team membersGetInfo:@[ userSelectArg ]] setResponseBlock:^(NSArray<DBTEAMMembersGetInfoItem *> *result,
@@ -1656,7 +1702,7 @@ void MyLog(NSString *format, ...) {
                 s_teamAdminUserClient = [[DBClientsManager authorizedTeamClient] userClientWithMemberId:self->_teamMemberId];
             }
             [TestFormat printSubTestEnd:NSStringFromSelector(_cmd)];
-            nextTest();
+            nextTest(self->_teamMemberId);
         } else {
             [TestFormat abort:error routeError:routeError];
         }
@@ -1843,9 +1889,9 @@ void MyLog(NSString *format, ...) {
 - (void)groupsCreate:(void (^)(void))nextTest {
     [TestFormat printSubTestBegin:NSStringFromSelector(_cmd)];
     [[[_tester.team groupsCreate:_tester.testData.groupName
-               addCreatorAsOwner:@(1)
+               addCreatorAsOwner:@NO
                  groupExternalId:_tester.testData.groupExternalId
-             groupManagementType:nil]
+             groupManagementType:[[DBTEAMCOMMONGroupManagementType alloc] initWithUserManaged]]
       setResponseBlock:^(DBTEAMGroupFullInfo *result, DBTEAMGroupCreateError *routeError, DBRequestError *error) {
         if (result) {
             MyLog(@"%@\n", result);
@@ -1965,29 +2011,37 @@ void MyLog(NSString *format, ...) {
     }];
 }
 
+- (void)checkGroupDeleteStatus:(NSString *)jobId nextTest:(void (^)(void))nextTest retryCount:(int)retryCount {
+    [[[self->_tester.team groupsJobStatusGet:jobId]
+      setResponseBlock:^(DBASYNCPollEmptyResult *result, DBTEAMGroupsPollError *routeError, DBRequestError *error) {
+        if (result) {
+            if ([result isInProgress]) {
+                if (retryCount == 0) {
+                    [TestFormat abort:error routeError:routeError];
+                }
+                [TestFormat printOffset:@"Waiting for deletion..."];
+                sleep(1);
+                [self checkGroupDeleteStatus:jobId nextTest:nextTest retryCount:retryCount - 1];
+            } else {
+                [TestFormat printOffset:@"Deleted"];
+                [TestFormat printSubTestEnd:NSStringFromSelector(_cmd)];
+                nextTest();
+            }
+        } else {
+            [TestFormat abort:error routeError:routeError];
+        }
+    } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
+        [TestFormat printSentProgress:bytesSent
+                       totalBytesSent:totalBytesSent
+             totalBytesExpectedToSend:totalBytesExpectedToSend];
+    }];
+}
+
 - (void)groupsDelete:(void (^)(void))nextTest {
     [TestFormat printSubTestBegin:NSStringFromSelector(_cmd)];
     
     void (^jobStatus)(NSString *) = ^(NSString *jobId) {
-        [[[self->_tester.team groupsJobStatusGet:jobId]
-          setResponseBlock:^(DBASYNCPollEmptyResult *result, DBTEAMGroupsPollError *routeError, DBRequestError *error) {
-            if (result) {
-                MyLog(@"%@\n", result);
-                if ([result isInProgress]) {
-                    [TestFormat abort:error routeError:routeError];
-                } else {
-                    [TestFormat printOffset:@"Deleted"];
-                    [TestFormat printSubTestEnd:NSStringFromSelector(_cmd)];
-                    nextTest();
-                }
-            } else {
-                [TestFormat abort:error routeError:routeError];
-            }
-        } queue:[NSOperationQueue new]] setProgressBlock:^(int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
-            [TestFormat printSentProgress:bytesSent
-                           totalBytesSent:totalBytesSent
-                 totalBytesExpectedToSend:totalBytesExpectedToSend];
-        }];
+        [self checkGroupDeleteStatus:jobId nextTest:nextTest retryCount:3];
     };
     
     DBTEAMGroupSelector *groupSelector =
@@ -2233,7 +2287,11 @@ static int smallDividerSize = 150;
 + (void)abort:(DBRequestError *)error routeError:(id)routeError {
     [self printErrors:error routeError:routeError];
     MyLog(@"Terminating....\n");
-    exit(0);
+    NSException* myException = [NSException
+            exceptionWithName:@"TestFailure"
+            reason:[NSString stringWithFormat:@"Error: %@ RouteError: %@", error, routeError]
+            userInfo:nil];
+    @throw myException;
 }
 
 + (void)printErrors:(DBRequestError *)error routeError:(id)routeError {
