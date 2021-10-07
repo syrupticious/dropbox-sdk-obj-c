@@ -1,5 +1,9 @@
 #!/bin/sh
 cd Source/ObjectiveDropboxOfficial/include
+
+#clean the include folder
+find . -type l -delete
+
 #equivalent to:   s.public_header_files = 'Source/ObjectiveDropboxOfficial/Shared/**/*.h'
 find ../Shared -name "*.h" | sort | uniq | while read header; do
 	ln -s ${header}

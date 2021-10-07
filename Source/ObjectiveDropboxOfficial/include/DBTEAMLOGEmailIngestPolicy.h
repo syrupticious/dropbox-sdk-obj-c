@@ -1,0 +1,1 @@
+../Shared/Generated/ApiObjects/TeamLog/Headers/DBTEAMLOGEmailIngestPolicy.h
