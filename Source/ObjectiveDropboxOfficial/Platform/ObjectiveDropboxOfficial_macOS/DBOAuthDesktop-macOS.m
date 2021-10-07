@@ -15,7 +15,7 @@ static DBDesktopSharedApplication *s_desktopSharedApplication;
 
 @implementation DBDesktopSharedApplication {
   NSWorkspace *_sharedWorkspace;
-  NSViewController *_controller;
+  __weak NSViewController *_Nullable _controller;
   void (^_openURL)(NSURL *);
 }
 
@@ -63,9 +63,7 @@ static DBDesktopSharedApplication *s_desktopSharedApplication;
 
 - (void)presentAuthChannel:(NSURL *)authURL cancelHandler:(void (^_Nonnull)(void))cancelHandler {
 #pragma unused(cancelHandler)
-  if (_controller) {
-    [self presentExternalApp:authURL];
-  }
+  [self presentExternalApp:authURL];
 }
 
 - (void)presentExternalApp:(NSURL *)url {
