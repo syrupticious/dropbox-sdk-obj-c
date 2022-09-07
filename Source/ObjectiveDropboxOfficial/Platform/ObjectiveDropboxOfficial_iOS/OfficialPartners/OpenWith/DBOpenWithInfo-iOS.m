@@ -51,12 +51,18 @@ static NSString *kStorageKeyPrefix = @"dbxOpenWith";
   }
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:fullKey];
   [[NSUserDefaults standardUserDefaults] synchronize];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   DBOpenWithInfo *openWithInfo = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+#pragma clang diagnostic pop
   return openWithInfo;
 }
 
 - (void)writeToStorageForSession:(NSString *)sessionId {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self];
+#pragma clang diagnostic pop
   [[NSUserDefaults standardUserDefaults] setObject:data forKey:[DBOpenWithInfo getStorageKeyFromSession:sessionId]];
   [[NSUserDefaults standardUserDefaults] synchronize];
 }

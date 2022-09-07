@@ -69,7 +69,10 @@ static NSString *kDBOpenURLAppDropboxEMM = @"DropboxEMM";
   }
   NSDictionary *pasteboardDictionary = nil;
   if (valuesArray) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     pasteboardDictionary = [NSKeyedUnarchiver unarchiveObjectWithData:valuesArray[0]];
+#pragma clang diagnostic pop
   }
 
   if (pasteboardDictionary && [pasteboardDictionary valueForKey:@"path"] &&

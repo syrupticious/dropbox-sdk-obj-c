@@ -236,7 +236,10 @@ static const char *kV1OSXAccountName = "Dropbox";
     for (NSDictionary<NSString *, id> *dict in dataResultDict) {
       NSData *foundData = dict[(NSString *)kSecValueData];
       if (foundData != nil) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         NSDictionary *unarchivedFoundData = [NSKeyedUnarchiver unarchiveObjectWithData:foundData];
+#pragma clang diagnostic pop
         NSString *retrievedAppKey = unarchivedFoundData[kV1ConsumerAppKeyKey];
         NSArray<NSDictionary<NSString *, id> *> *credentialsList = unarchivedFoundData[kV1UserCredentialsKey];
         for (NSDictionary<NSString *, id> *credential in credentialsList) {
@@ -277,10 +280,16 @@ static const char *kV1OSXAccountName = "Dropbox";
     NSData *data = (__bridge NSData *)dataResult;
     NSArray<NSDictionary<NSString *, id> *> *dataResultDict = (NSArray<NSDictionary<NSString *, id> *> *)data ?: @[];
     for (NSDictionary<NSString *, id> *dict in dataResultDict) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
       NSData *foundData = dict[(NSString *)kSecValueData];
+#pragma clang diagnostic pop
       if (foundData != nil) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         NSDictionary *credentialsDictionary =
             [NSKeyedUnarchiver unarchiveObjectWithData:foundData][kV1SyncAccountCredentialsKey];
+#pragma clang diagnostic pop
         for (NSString *credentialKey in credentialsDictionary) {
           NSArray<NSDictionary<NSString *, id> *> *credentialList = credentialsDictionary[credentialKey];
           for (NSDictionary<NSString *, id> *credential in credentialList) {
