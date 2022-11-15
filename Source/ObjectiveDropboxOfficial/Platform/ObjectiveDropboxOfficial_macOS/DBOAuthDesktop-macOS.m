@@ -76,7 +76,7 @@ static DBDesktopSharedApplication *s_desktopSharedApplication;
 }
 
 - (void)presentLoading {
-  [_loadingStatusDelegate showLoading];
+  [_loadingStatusDelegate db_showLoading];
 }
 
 - (void)dismissLoading {

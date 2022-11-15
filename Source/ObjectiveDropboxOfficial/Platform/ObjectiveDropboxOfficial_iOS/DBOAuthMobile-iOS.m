@@ -166,7 +166,7 @@ static DBMobileSharedApplication *s_mobileSharedApplication;
 // Delegate to app to present loading if delegate is set. Otherwise, present the spinner in the view controller.
 - (void)db_presentLoadingInApp {
   if (_loadingStatusDelegate) {
-    [_loadingStatusDelegate showLoading];
+    [_loadingStatusDelegate db_showLoading];
   } else {
     [self db_presentLoadingInViewController:_controller];
   }

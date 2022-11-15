@@ -11,7 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol DBLoadingStatusDelegate <NSObject>
 
 /// Called when auth flow is loading/waiting for some data. e.g. Waiting for a network request to finish.
-- (void)showLoading;
+- (void)db_showLoading; // Changed this from showLoading to db_showLoading to avoid Apple complaining about seeing a private API usage
 
 /// Called when auth flow finishes loading/waiting. e.g. A network request finished.
 - (void)dismissLoading;
