@@ -77,6 +77,7 @@
 #import "DBFILESMediaInfo.h"
 #import "DBFILESMetadata.h"
 #import "DBFILESMinimalFileLinkMetadata.h"
+#import "DBFILESMoveIntoFamilyError.h"
 #import "DBFILESMoveIntoVaultError.h"
 #import "DBFILESPaperContentError.h"
 #import "DBFILESPaperCreateError.h"
@@ -111,7 +112,7 @@
 #import "DBFILESThumbnailError.h"
 #import "DBFILESThumbnailV2Error.h"
 #import "DBFILESUploadError.h"
-#import "DBFILESUploadErrorWithProperties.h"
+#import "DBFILESUploadSessionAppendError.h"
 #import "DBFILESUploadSessionFinishBatchJobStatus.h"
 #import "DBFILESUploadSessionFinishBatchLaunch.h"
 #import "DBFILESUploadSessionFinishBatchResult.h"
@@ -119,6 +120,7 @@
 #import "DBFILESUploadSessionFinishError.h"
 #import "DBFILESUploadSessionLookupError.h"
 #import "DBFILESUploadSessionOffsetError.h"
+#import "DBFILESUploadSessionStartBatchResult.h"
 #import "DBFILESUploadSessionStartError.h"
 #import "DBFILESUploadSessionStartResult.h"
 #import "DBFILESUploadWriteFailed.h"
@@ -197,6 +199,7 @@ static DBRoute *DBFILESUploadSessionFinishBatch;
 static DBRoute *DBFILESUploadSessionFinishBatchV2;
 static DBRoute *DBFILESUploadSessionFinishBatchCheck;
 static DBRoute *DBFILESUploadSessionStart;
+static DBRoute *DBFILESUploadSessionStartBatch;
 
 static NSObject *lockObj = nil;
 + (void)initialize {
@@ -233,7 +236,7 @@ static NSObject *lockObj = nil;
                                       namespace_:@"files"
                                       deprecated:@YES
                                       resultType:[DBFILESFileMetadata class]
-                                       errorType:[DBFILESUploadErrorWithProperties class]
+                                       errorType:[DBFILESUploadError class]
                                            attrs:@{
                                              @"auth" : @"user",
                                              @"host" : @"content",
@@ -1433,7 +1436,7 @@ static NSObject *lockObj = nil;
                                                 namespace_:@"files"
                                                 deprecated:@NO
                                                 resultType:nil
-                                                 errorType:[DBFILESUploadSessionLookupError class]
+                                                 errorType:[DBFILESUploadSessionAppendError class]
                                                      attrs:@{
                                                        @"auth" : @"user",
                                                        @"host" : @"content",
@@ -1453,7 +1456,7 @@ static NSObject *lockObj = nil;
                                               namespace_:@"files"
                                               deprecated:@YES
                                               resultType:nil
-                                               errorType:[DBFILESUploadSessionLookupError class]
+                                               errorType:[DBFILESUploadSessionAppendError class]
                                                    attrs:@{
                                                      @"auth" : @"user",
                                                      @"host" : @"content",
@@ -1563,6 +1566,26 @@ static NSObject *lockObj = nil;
                                 dataStructDeserialBlock:nil];
     }
     return DBFILESUploadSessionStart;
+  }
+}
+
++ (DBRoute *)DBFILESUploadSessionStartBatch {
+  @synchronized(lockObj) {
+    if (!DBFILESUploadSessionStartBatch) {
+      DBFILESUploadSessionStartBatch = [[DBRoute alloc] init:@"upload_session/start_batch"
+                                                  namespace_:@"files"
+                                                  deprecated:@NO
+                                                  resultType:[DBFILESUploadSessionStartBatchResult class]
+                                                   errorType:nil
+                                                       attrs:@{
+                                                         @"auth" : @"user",
+                                                         @"host" : @"api",
+                                                         @"style" : @"rpc"
+                                                       }
+                                       dataStructSerialBlock:nil
+                                     dataStructDeserialBlock:nil];
+    }
+    return DBFILESUploadSessionStartBatch;
   }
 }
 

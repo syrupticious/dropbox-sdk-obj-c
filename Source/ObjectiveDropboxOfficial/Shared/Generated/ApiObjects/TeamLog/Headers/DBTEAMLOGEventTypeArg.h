@@ -196,6 +196,12 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
     /// (devices) Refreshed auth token used for setting up EMM
     DBTEAMLOGEventTypeArgEmmRefreshAuthToken,
 
+    /// (devices) Checked external drive backup eligibility status
+    DBTEAMLOGEventTypeArgExternalDriveBackupEligibilityStatusChecked,
+
+    /// (devices) Modified external drive backup
+    DBTEAMLOGEventTypeArgExternalDriveBackupStatusChanged,
+
     /// (domains) Granted/revoked option to enable account capture on team
     /// domains
     DBTEAMLOGEventTypeArgAccountCaptureChangeAvailability,
@@ -332,7 +338,7 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
     /// (file_operations) Removed tags
     DBTEAMLOGEventTypeArgUserTagsRemoved,
 
-    /// (file_requests) Received files via Email to my Dropbox
+    /// (file_requests) Received files via Email to Dropbox
     DBTEAMLOGEventTypeArgEmailIngestReceiveFile,
 
     /// (file_requests) Changed file request
@@ -1127,6 +1133,10 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
     /// (team_policies) Changed account capture setting on team domain
     DBTEAMLOGEventTypeArgAccountCaptureChangePolicy,
 
+    /// (team_policies) Changed admin email reminder policy for team requests to
+    /// join
+    DBTEAMLOGEventTypeArgAdminEmailRemindersChanged,
+
     /// (team_policies) Disabled downloads (deprecated, no longer logged)
     DBTEAMLOGEventTypeArgAllowDownloadDisabled,
 
@@ -1187,7 +1197,10 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
     /// (team_policies) Removed members from directory restrictions list
     DBTEAMLOGEventTypeArgDirectoryRestrictionsRemoveMembers,
 
-    /// (team_policies) Changed email to my Dropbox policy for team
+    /// (team_policies) Changed Dropbox Passwords policy for team
+    DBTEAMLOGEventTypeArgDropboxPasswordsPolicyChanged,
+
+    /// (team_policies) Changed email to Dropbox policy for team
     DBTEAMLOGEventTypeArgEmailIngestPolicyChanged,
 
     /// (team_policies) Added members to EMM exception list
@@ -1403,6 +1416,13 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
     /// (team_policies) Changed how long team members can be idle while signed
     /// in to Dropbox.com
     DBTEAMLOGEventTypeArgWebSessionsChangeIdleLengthPolicy,
+
+    /// (team_profile) Requested data residency migration for team data
+    DBTEAMLOGEventTypeArgDataResidencyMigrationRequestSuccessful,
+
+    /// (team_profile) Request for data residency migration for team data has
+    /// failed
+    DBTEAMLOGEventTypeArgDataResidencyMigrationRequestUnsuccessful,
 
     /// (team_profile) Merged another team into this team
     DBTEAMLOGEventTypeArgTeamMergeFrom,
@@ -2110,6 +2130,28 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 
 ///
 /// Initializes union class with tag state of
+/// "external_drive_backup_eligibility_status_checked".
+///
+/// Description of the "external_drive_backup_eligibility_status_checked" tag
+/// state: (devices) Checked external drive backup eligibility status
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithExternalDriveBackupEligibilityStatusChecked;
+
+///
+/// Initializes union class with tag state of
+/// "external_drive_backup_status_changed".
+///
+/// Description of the "external_drive_backup_status_changed" tag state:
+/// (devices) Modified external drive backup
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithExternalDriveBackupStatusChanged;
+
+///
+/// Initializes union class with tag state of
 /// "account_capture_change_availability".
 ///
 /// Description of the "account_capture_change_availability" tag state:
@@ -2568,7 +2610,7 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 /// Initializes union class with tag state of "email_ingest_receive_file".
 ///
 /// Description of the "email_ingest_receive_file" tag state: (file_requests)
-/// Received files via Email to my Dropbox
+/// Received files via Email to Dropbox
 ///
 /// @return An initialized instance.
 ///
@@ -5136,6 +5178,17 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 - (instancetype)initWithAccountCaptureChangePolicy;
 
 ///
+/// Initializes union class with tag state of "admin_email_reminders_changed".
+///
+/// Description of the "admin_email_reminders_changed" tag state:
+/// (team_policies) Changed admin email reminder policy for team requests to
+/// join
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithAdminEmailRemindersChanged;
+
+///
 /// Initializes union class with tag state of "allow_download_disabled".
 ///
 /// Description of the "allow_download_disabled" tag state: (team_policies)
@@ -5332,10 +5385,21 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 - (instancetype)initWithDirectoryRestrictionsRemoveMembers;
 
 ///
+/// Initializes union class with tag state of
+/// "dropbox_passwords_policy_changed".
+///
+/// Description of the "dropbox_passwords_policy_changed" tag state:
+/// (team_policies) Changed Dropbox Passwords policy for team
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithDropboxPasswordsPolicyChanged;
+
+///
 /// Initializes union class with tag state of "email_ingest_policy_changed".
 ///
 /// Description of the "email_ingest_policy_changed" tag state: (team_policies)
-/// Changed email to my Dropbox policy for team
+/// Changed email to Dropbox policy for team
 ///
 /// @return An initialized instance.
 ///
@@ -6023,6 +6087,29 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 /// @return An initialized instance.
 ///
 - (instancetype)initWithWebSessionsChangeIdleLengthPolicy;
+
+///
+/// Initializes union class with tag state of
+/// "data_residency_migration_request_successful".
+///
+/// Description of the "data_residency_migration_request_successful" tag state:
+/// (team_profile) Requested data residency migration for team data
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithDataResidencyMigrationRequestSuccessful;
+
+///
+/// Initializes union class with tag state of
+/// "data_residency_migration_request_unsuccessful".
+///
+/// Description of the "data_residency_migration_request_unsuccessful" tag
+/// state: (team_profile) Request for data residency migration for team data has
+/// failed
+///
+/// @return An initialized instance.
+///
+- (instancetype)initWithDataResidencyMigrationRequestUnsuccessful;
 
 ///
 /// Initializes union class with tag state of "team_merge_from".
@@ -6964,6 +7051,24 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 /// "emm_refresh_auth_token".
 ///
 - (BOOL)isEmmRefreshAuthToken;
+
+///
+/// Retrieves whether the union's current tag state has value
+/// "external_drive_backup_eligibility_status_checked".
+///
+/// @return Whether the union's current tag state has value
+/// "external_drive_backup_eligibility_status_checked".
+///
+- (BOOL)isExternalDriveBackupEligibilityStatusChecked;
+
+///
+/// Retrieves whether the union's current tag state has value
+/// "external_drive_backup_status_changed".
+///
+/// @return Whether the union's current tag state has value
+/// "external_drive_backup_status_changed".
+///
+- (BOOL)isExternalDriveBackupStatusChanged;
 
 ///
 /// Retrieves whether the union's current tag state has value
@@ -9529,6 +9634,15 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 
 ///
 /// Retrieves whether the union's current tag state has value
+/// "admin_email_reminders_changed".
+///
+/// @return Whether the union's current tag state has value
+/// "admin_email_reminders_changed".
+///
+- (BOOL)isAdminEmailRemindersChanged;
+
+///
+/// Retrieves whether the union's current tag state has value
 /// "allow_download_disabled".
 ///
 /// @return Whether the union's current tag state has value
@@ -9688,6 +9802,15 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 /// "directory_restrictions_remove_members".
 ///
 - (BOOL)isDirectoryRestrictionsRemoveMembers;
+
+///
+/// Retrieves whether the union's current tag state has value
+/// "dropbox_passwords_policy_changed".
+///
+/// @return Whether the union's current tag state has value
+/// "dropbox_passwords_policy_changed".
+///
+- (BOOL)isDropboxPasswordsPolicyChanged;
 
 ///
 /// Retrieves whether the union's current tag state has value
@@ -10268,6 +10391,24 @@ typedef NS_CLOSED_ENUM(NSInteger, DBTEAMLOGEventTypeArgTag){
 /// "web_sessions_change_idle_length_policy".
 ///
 - (BOOL)isWebSessionsChangeIdleLengthPolicy;
+
+///
+/// Retrieves whether the union's current tag state has value
+/// "data_residency_migration_request_successful".
+///
+/// @return Whether the union's current tag state has value
+/// "data_residency_migration_request_successful".
+///
+- (BOOL)isDataResidencyMigrationRequestSuccessful;
+
+///
+/// Retrieves whether the union's current tag state has value
+/// "data_residency_migration_request_unsuccessful".
+///
+/// @return Whether the union's current tag state has value
+/// "data_residency_migration_request_unsuccessful".
+///
+- (BOOL)isDataResidencyMigrationRequestUnsuccessful;
 
 ///
 /// Retrieves whether the union's current tag state has value "team_merge_from".
