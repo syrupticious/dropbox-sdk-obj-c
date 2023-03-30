@@ -209,7 +209,15 @@ static NSString *kDBLinkNonce = @"dropbox.sync.nonce";
     authCode = parametersMap[kDBOauthSecretKey];
   }
   if (authCode) {
-    [self finishPkceOAuthWithAuthCode:authCode codeVerifier:authSession.pkceData.codeVerifier completion:completion];
+    [self finishPkceOAuthWithAuthCode:authCode codeVerifier:authSession.pkceData.codeVerifier completion:^(DBOAuthResult * _Nullable result) {
+      if (result.isError) {
+        // Single-shot retry to attempt to workaround a known issue that seems to be caused by trying to re-use a dead connection.
+        // https://www.dropboxforum.com/t5/Dropbox-API-Support-Feedback/Re-linking-using-Obj-C-SDK-fails-with-network-error/td-p/593634
+        [self finishPkceOAuthWithAuthCode:authCode codeVerifier:authSession.pkceData.codeVerifier completion:completion];
+      } else {
+        completion(result);
+      }
+    }];
   } else {
     completion([DBOAuthResult unknownErrorWithErrorDescription:@"Unable to verify link request."]);
   }
