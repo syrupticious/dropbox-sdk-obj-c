@@ -27,17 +27,23 @@ FOUNDATION_EXPORT const unsigned char ObjectiveDropboxOfficialVersionString[];
 // <ObjectiveDropboxOfficial/PublicHeader.h>
 #if SWIFT_PACKAGE
 #import "../Shared/Handwritten/DBSDKImportsShared.h"
+#elif __has_include("../Shared/Handwritten/DBSDKImportsShared.h")
+#import "../Shared/Handwritten/DBSDKImportsShared.h"
 #else
 #import <ObjectiveDropboxOfficial/DBSDKImportsShared.h>
 #endif // SWIFT_PACKAGE
 #if TARGET_OS_IPHONE
 #if SWIFT_PACKAGE
 #import "../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h"
+#elif __has_include("../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h")
+#import "../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h"
 #else
 #import <ObjectiveDropboxOfficial/DBSDKImports-iOS.h>
 #endif // SWIFT_PACKAGE
 #elif TARGET_OS_MAC
 #if SWIFT_PACKAGE
+#import "../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h"
+#elif __has_include("../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h")
 #import "../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h"
 #else
 #import <ObjectiveDropboxOfficial/DBSDKImports-macOS.h>
