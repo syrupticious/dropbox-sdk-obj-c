@@ -26,7 +26,7 @@ FOUNDATION_EXPORT const unsigned char ObjectiveDropboxOfficialVersionString[];
 // In this header, you should import all the public headers of your framework using statements like #import
 // <ObjectiveDropboxOfficial/PublicHeader.h>
 #if SWIFT_PACKAGE
-#import "../Shared/Handwritten/DBSDKImportsShared.h"
+#import "DBSDKImportsShared.h"
 #elif __has_include("../Shared/Handwritten/DBSDKImportsShared.h")
 #import "../Shared/Handwritten/DBSDKImportsShared.h"
 #else
@@ -34,7 +34,7 @@ FOUNDATION_EXPORT const unsigned char ObjectiveDropboxOfficialVersionString[];
 #endif // SWIFT_PACKAGE
 #if TARGET_OS_IPHONE
 #if SWIFT_PACKAGE
-#import "../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h"
+#import "DBSDKImports-iOS.h"
 #elif __has_include("../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h")
 #import "../Platform/ObjectiveDropboxOfficial_iOS/DBSDKImports-iOS.h"
 #else
@@ -42,7 +42,7 @@ FOUNDATION_EXPORT const unsigned char ObjectiveDropboxOfficialVersionString[];
 #endif // SWIFT_PACKAGE
 #elif TARGET_OS_MAC
 #if SWIFT_PACKAGE
-#import "../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h"
+#import "Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h"
 #elif __has_include("../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h")
 #import "../Platform/ObjectiveDropboxOfficial_macOS/DBSDKImports-macOS.h"
 #else
