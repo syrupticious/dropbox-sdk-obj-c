@@ -45,7 +45,10 @@ static const char *kV1OSXAccountName = "Dropbox";
 + (void)initialize {
   static dispatch_once_t once;
   dispatch_once(&once, ^{
-    [[self class] checkAccessibilityMigration];
+    [[self class] migrateToSurviveBackupRestore];
+    // This old migration is no longer needed, because it's only for Dropbox SDK usages from 2016 and earlier.
+    // All these old tokens have already been migrated, and if they haven't, the user will just need to log in again.
+    // [[self class] checkAccessibilityMigration];
   });
 }
 
@@ -149,7 +152,7 @@ static const char *kV1OSXAccountName = "Dropbox";
   [queryResult setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
   [queryResult setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, service]
                   forKey:(id)kSecAttrService];
-  [queryResult setObject:(id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly forKey:(id)kSecAttrAccessible];
+  [queryResult setObject:(id)kSecAttrAccessibleAfterFirstUnlock forKey:(id)kSecAttrAccessible];
 
   return queryResult;
 }
@@ -165,10 +168,22 @@ static const char *kV1OSXAccountName = "Dropbox";
     [query setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, bundleId] forKey:(id)kSecAttrService];
 
     NSDictionary<id, id> *attributesToUpdate =
-        @{(id)kSecAttrAccessible : (id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly};
+        @{(id)kSecAttrAccessible : (id)kSecAttrAccessibleAfterFirstUnlock};
     SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)attributesToUpdate);
     [userDefaults setBool:YES forKey:kAccessibilityMigrationOccurredKey];
   }
+}
+
++ (void)migrateToSurviveBackupRestore {
+  NSMutableDictionary<id, id> *query = [NSMutableDictionary new];
+  NSString *bundleId = [NSBundle mainBundle].bundleIdentifier ?: @"";
+  [query setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
+  [query setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, bundleId] forKey:(id)kSecAttrService];
+  [query setObject:(id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly forKey:(id)kSecAttrAccessible];
+
+  NSDictionary<id, id> *attributesToUpdate =
+      @{(id)kSecAttrAccessible : (id)kSecAttrAccessibleAfterFirstUnlock};
+  SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)attributesToUpdate);
 }
 
 + (BOOL)checkAndPerformV1TokenMigration:(DBTokenMigrationResponseBlock)responseBlock
