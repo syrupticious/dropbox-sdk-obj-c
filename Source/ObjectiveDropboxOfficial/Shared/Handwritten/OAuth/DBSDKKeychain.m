@@ -15,7 +15,7 @@
 #import "DBSDKKeychain.h"
 #import "DBTransportDefaultConfig.h"
 
-static NSString *kAccessibilityMigrationOccurredKey = @"KeychainAccessibilityMigration";
+static NSString *kAccessibilityMigrationOccurredKey = @"KeychainAccessibilityMigration2";
 static NSString *kV1TokenMigrationOccurredKeyBase = @"KeychainV1TokenMigration-%@";
 
 static NSString *kV2KeychainServiceKeyBase = @"%@.dropbox.authv2";
@@ -149,7 +149,7 @@ static const char *kV1OSXAccountName = "Dropbox";
   [queryResult setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
   [queryResult setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, service]
                   forKey:(id)kSecAttrService];
-  [queryResult setObject:(id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly forKey:(id)kSecAttrAccessible];
+  [queryResult setObject:(id)kSecAttrAccessibleAfterFirstUnlock forKey:(id)kSecAttrAccessible];
 
   return queryResult;
 }
@@ -165,7 +165,7 @@ static const char *kV1OSXAccountName = "Dropbox";
     [query setObject:(id)[NSString stringWithFormat:kV2KeychainServiceKeyBase, bundleId] forKey:(id)kSecAttrService];
 
     NSDictionary<id, id> *attributesToUpdate =
-        @{(id)kSecAttrAccessible : (id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly};
+        @{(id)kSecAttrAccessible : (id)kSecAttrAccessibleAfterFirstUnlock};
     SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)attributesToUpdate);
     [userDefaults setBool:YES forKey:kAccessibilityMigrationOccurredKey];
   }
