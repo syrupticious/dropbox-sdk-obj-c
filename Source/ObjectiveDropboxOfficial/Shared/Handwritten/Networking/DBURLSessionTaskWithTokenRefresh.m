@@ -40,8 +40,11 @@
     _taskDelegate = taskDelegate;
     _session = urlSession;
     _tokenProvider = tokenProvider;
+      // TODO: FP-1493 -- We would prefer QoS of QOS_CLASS_USER_INITIATED here
+      // Revisit this in iOS 18 and above to see if we can use user initiated without
+      // getting a thread priority inversion warning from the iOS frameworks
     dispatch_queue_attr_t qosAttribute =
-        dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
+        dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_DEFAULT, 0);
     _serialQueue =
         dispatch_queue_create("com.dropbox.dropbox_sdk_obj_c.DBURLSessionTaskWithTokenRefresh.queue", qosAttribute);
   }
